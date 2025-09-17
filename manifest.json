@@ -1,32 +1,47 @@
 {
   "manifest_version": 3,
   "name": "Color Text Finder Pro",
-  "version": "1.0",
-  "description": "Находит текст на странице по указанному цвету, кликает на раскрывашки и получает цвет выделенного текста",
-  "permissions": ["activeTab", "scripting", "clipboardWrite"],
+  "version": "1.0.0",
+  "version_name": "1.0.0",
+  "description": "Находит текст на странице по указанному цвету, кликает на раскрывашки и получает цвет выделенного текста. Powerful text color detection tool for Chrome.",
+  
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  
   "action": {
     "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_title": "Color Text Finder"
   },
+  
   "icons": {
     "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "run_at": "document_idle",
-      "all_frames": true
+      "run_at": "document_idle"
     }
   ],
-  "web_accessible_resources": [{
-    "resources": ["content.js"],
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["content.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "externally_connectable": {
     "matches": ["<all_urls>"]
-  }]
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
