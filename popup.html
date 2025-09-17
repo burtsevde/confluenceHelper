@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 350px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .color-input {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    #findButton {
+      background: #007bff;
+    }
+    #findButton:hover {
+      background: #0056b3;
+    }
+    #expandButton {
+      background: #28a745;
+    }
+    #expandButton:hover {
+      background: #218838;
+    }
+    #getColorButton {
+      background: #6f42c1;
+    }
+    #getColorButton:hover {
+      background: #5a359c;
+    }
+    .buttons-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .buttons-grid button {
+      width: 100%;
+    }
+    .results {
+      margin-top: 15px;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .result-item {
+      padding: 8px;
+      margin: 4px 0;
+      background: #f8f9fa;
+      border-radius: 4px;
+      cursor: pointer;
+      border-left: 4px solid #007bff;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .result-item:hover {
+      background: #e9ecef;
+    }
+    .status-message {
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 4px;
+      font-size: 12px;
+      text-align: center;
+      display: none;
+    }
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .color-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      margin: 5px 0;
+    }
+    .color-box {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+    }
+    .section-title {
+      font-weight: bold;
+      margin: 10px 0 5px 0;
+      color: #333;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="section-title">Цвет для поиска:</div>
+    <div class="color-input">
+      <input type="color" id="colorPicker" value="#ff0000">
+      <input type="text" id="colorInput" placeholder="#ff0000 или rgb(255,0,0)" value="#ff0000">
+    </div>
+
+    <div class="buttons-grid">
+      <button id="findButton">Найти текст</button>
+      <button id="getColorButton">Получить цвет</button>
+      <button id="expandButton">Кликнуть раскрывашки</button>
+    </div>
+
+    <div id="expandStatus" class="status-message"></div>
+
+    <!-- <div class="color-preview" id="colorPreview" style="display: none;">
+      <div class="color-box" id="previewBox"></div>
+      <div id="previewText">Текущий цвет: <span id="colorValue">#ff0000</span></div>
+    </div> -->
+
+    <div class="results">
+      <div class="section-title">Найденные элементы:</div>
+      <div id="resultsList"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
