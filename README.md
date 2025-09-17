@@ -13,12 +13,12 @@
 2. Выбираем "Получить цвет"
 3. В поле кода цвета указывается код выделенного цвета
 
-![Screenshot_1](screenshots\Screenshot_1.png)
+![Screenshot_1](https://github.com/burtsevde/confluenceHelper/blob/main/screenshots/Screenshot_1.png)
 
 Сценарий 2:
 1. Можно выбрать "Кликнуть раскрывашки". Тогда раскроются все блоки "Extend".
 2. Выбираем "Найти текст"
 3. Приложение показывает блоки, которые нашлись.
 
-![Screenshot_2](screenshots\Screenshot_2.png)
+![Screenshot_2](https://github.com/burtsevde/confluenceHelper/blob/main/screenshots/Screenshot_2.png)
 
