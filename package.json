@@ -1,0 +1,22 @@
+{
+  "name": "confluence-helper",
+  "version": "1.0.0",
+  "description": "Cross-browser extension for text color finding and manipulation",
+  "main": "background.js",
+  "scripts": {
+    "build-chrome": "zip -r chrome-extension.zip . -x '*.DS_Store' '*.git*' 'node_modules/*' 'safari/*'",
+    "build-safari": "xcodebuild -project safari/ConfluenceHelper.xcodeproj",
+    "pack": "npm run build-chrome"
+  },
+  "keywords": [
+    "chrome-extension",
+    "safari-extension",
+    "text-color",
+    "productivity"
+  ],
+  "author": "burtsevde",
+  "license": "MIT",
+  "devDependencies": {
+    "web-ext": "^7.0.0"
+  }
+}

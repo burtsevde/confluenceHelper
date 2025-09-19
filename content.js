@@ -1,6 +1,27 @@
-console.log('Color Text Finder content script loaded');
+console.log('Confluence Helper content script loaded');
 
 let foundElements = [];
+
+// Универсальная функция для отправки сообщений
+function sendMessageToExtension(message) {
+  return new Promise((resolve, reject) => {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage(message, (response) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(response);
+        }
+      });
+    } else {
+      // Fallback для Safari
+      const event = new CustomEvent('ExtensionMessage', {
+        detail: { message, resolve, reject }
+      });
+      document.dispatchEvent(event);
+    }
+  });
+}
 
 // Функция для получения цвета выделенного текста
 function getSelectedTextColor() {
@@ -235,8 +256,8 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Обработчик сообщений
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// Универсальный обработчик сообщений
+function handleExtensionMessage(request, sendResponse) {
     console.log('Received message:', request.action);
     
     try {
@@ -286,4 +307,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     
     return true;
+}
+
+// Обработчик для Chrome
+if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        return handleExtensionMessage(request, sendResponse);
+    });
+}
+
+// Обработчик для Safari
+document.addEventListener('ExtensionMessage', (event) => {
+    const { message, resolve, reject } = event.detail;
+    handleExtensionMessage(message, (response) => {
+        resolve(response);
+    });
 });
+
+// Инициализация для Safari
+if (typeof safari !== 'undefined') {
+    console.log('Running in Safari extension');
+}

@@ -6,19 +6,62 @@ document.addEventListener('DOMContentLoaded', function() {
   const getColorButton = document.getElementById('getColorButton');
   const resultsList = document.getElementById('resultsList');
   const expandStatus = document.getElementById('expandStatus');
-  const colorPreview = document.getElementById('colorPreview');
-  const previewBox = document.getElementById('previewBox');
-  const colorValue = document.getElementById('colorValue');
 
   let currentTab = null;
+
+  // Универсальная функция отправки сообщений
+  async function sendMessageToTab(tabId, message) {
+    return new Promise((resolve, reject) => {
+      if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.sendMessage) {
+        chrome.tabs.sendMessage(tabId, message, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(response);
+          }
+        });
+      } else {
+        // Fallback для Safari
+        const event = new CustomEvent('TabMessage', {
+          detail: { tabId, message, resolve, reject }
+        });
+        document.dispatchEvent(event);
+      }
+    });
+  }
+
+  // Универсальная функция получения активной вкладки
+  async function getActiveTab() {
+    return new Promise((resolve) => {
+      if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          resolve(tabs[0]);
+        });
+      } else if (typeof safari !== 'undefined') {
+        // Для Safari
+        safari.extension.addEventListener('message', function handler(event) {
+          if (event.name === 'activeTabResponse') {
+            safari.extension.removeEventListener('message', handler);
+            resolve(event.message.tab);
+          }
+        });
+        safari.extension.dispatchMessage('getActiveTab');
+      } else {
+        resolve(null);
+      }
+    });
+  }
 
   // Инициализация
   async function init() {
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      currentTab = tab;
+      currentTab = await getActiveTab();
+      if (!currentTab) {
+        throw new Error('Не удалось получить активную вкладку');
+      }
+      
       await validateContentScript();
-      return tab;
+      return currentTab;
     } catch (error) {
       console.error('Init error:', error);
       showStatus('Ошибка инициализации. Обновите страницу.', false);
@@ -29,16 +72,18 @@ document.addEventListener('DOMContentLoaded', function() {
   // Проверка и инъекция content script
   async function validateContentScript() {
     try {
-      await chrome.tabs.sendMessage(currentTab.id, { action: 'ping' });
+      await sendMessageToTab(currentTab.id, { action: 'ping' });
       console.log('Content script is loaded');
       return true;
     } catch (error) {
       console.log('Content script not responding, injecting...');
       try {
-        await chrome.scripting.executeScript({
-          target: { tabId: currentTab.id },
-          files: ['content.js']
-        });
+        if (typeof chrome !== 'undefined' && chrome.scripting) {
+          await chrome.scripting.executeScript({
+            target: { tabId: currentTab.id },
+            files: ['content.js']
+          });
+        }
         await new Promise(resolve => setTimeout(resolve, 100));
         return true;
       } catch (injectError) {
@@ -66,9 +111,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const hexColor = rgbToHex(color);
     colorInput.value = hexColor;
     colorPicker.value = hexColor;
-    // previewBox.style.backgroundColor = hexColor;
-    // colorValue.textContent = hexColor;
-    // colorPreview.style.display = 'flex';
   }
 
   // Конвертация RGB в HEX
@@ -92,9 +134,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function isValidColor(color) {
     const hexRegex = /^#([0-9A-F]{3}){1,2}$/i;
     const rgbRegex = /^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/i;
-    const rgbaRegex = /^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)$/i;
+    const rgbaRegex = /^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\)$/i;
     return hexRegex.test(color) || rgbRegex.test(color) || rgbaRegex.test(color);
   }
+
+  // Остальной код popup.js остается без изменений...
+  // [Здесь должен быть остальной код из вашего popup.js]
 
   // Синхронизация color picker и текстового поля
   colorPicker.addEventListener('input', (e) => {
@@ -213,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Функция отправки сообщения с таймаутом
   async function sendMessageWithTimeout(message, timeoutMs = 3000) {
     return Promise.race([
-      chrome.tabs.sendMessage(currentTab.id, message),
+      sendMessageToTab(currentTab.id, message),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
       )
