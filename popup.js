@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!currentTab) currentTab = await init();
       if (!currentTab) return;
       
-      await validateContentScript();
+      // await validateContentScript();
       
       const response = await sendMessageWithTimeout({
         action: 'findTextByColor',
@@ -187,17 +187,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Кнопка получения цвета выделенного текста
-  getColorButton.addEventListener('click', async () => {
+  async function getColor() {
     try {
       if (!currentTab) currentTab = await init();
       if (!currentTab) return;
       
-      await validateContentScript();
+      // await validateContentScript();
       
       const response = await sendMessageWithTimeout({
         action: 'getSelectedColor'
-      }, 2000);
+      }, 3000);
 
       if (response && response.success) {
         if (response.color) {
@@ -226,6 +225,11 @@ document.addEventListener('DOMContentLoaded', function() {
         showStatus('Ошибка получения цвета', false);
       }
     }
+  }
+
+  // Кнопка получения цвета выделенного текста
+  getColorButton.addEventListener('click', async () => {
+    getColor();
   });
 
   // Кнопка клика на раскрывашки
@@ -234,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!currentTab) currentTab = await init();
       if (!currentTab) return;
       
-      await validateContentScript();
+      // await validateContentScript();
       
       const response = await sendMessageWithTimeout({
         action: 'clickExpandButtons'
@@ -301,6 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tab) {
       console.log('Extension initialized for tab:', tab.id);
       updateColorPreview(colorInput.value);
+      getColor();
     }
   });
 });

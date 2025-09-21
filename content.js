@@ -111,6 +111,7 @@ function findTextElements(node, elements = []) {
 // Поиск текста по цвету
 function findTextByColor(targetColor) {
     foundElements = [];
+    foundTextElements = [];
     const normalizedTargetColor = normalizeColor(targetColor);
     
     console.log('Searching for color:', normalizedTargetColor);
@@ -129,12 +130,16 @@ function findTextByColor(targetColor) {
             if (normalizedElementColor === normalizedTargetColor) {
                 const text = element.textContent.trim();
                 if (text && text.length > 0) {
-                    foundElements.push({
-                        element: element,
-                        text: text,
-                        color: elementColor,
-                        originalColor: normalizedElementColor
-                    });
+                    if (!foundTextElements.includes(text)){
+                        foundElements.push({
+                            element: element,
+                            text: text,
+                            color: elementColor,
+                            originalColor: normalizedElementColor
+                        });
+                        foundTextElements.push(text);
+                    }
+                    
                 }
             }
         } catch (error) {
