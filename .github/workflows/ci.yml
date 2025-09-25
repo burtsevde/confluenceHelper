@@ -9,7 +9,7 @@ on:
     branches:
       - main
     tags:
-      - "v*"  # например v1.0.0
+      - "v*" # например v1.0.0
 
 jobs:
   test:
@@ -31,26 +31,18 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      # Собираем расширения
-      - run: npm run build:chrome
-      - run: npm run build:firefox
-      - run: npm run build:safari
-      # Создаем zip-файлы
-      - name: Zip Chrome
-        run: zip -r dist/chrome/chrome.zip dist/chrome/*
-      - name: Zip Firefox
-        run: zip -r dist/firefox/firefox.zip dist/firefox/*
-      - name: Zip Safari
-        run: zip -r dist/safari/safari.zip dist/safari/*
-      # Загружаем zip как артефакты
+      - run: npm run build
+      - name: Zip each browser build
+        run: |
+            for dir in dist/*; do
+            if [ -d "$dir" ]; then
+             zip -r "$dir/$(basename $dir).zip" "$dir"/*
+            fi
+            done
       - uses: actions/upload-artifact@v4
         with:
           name: extension-builds
-          path: |
-            dist/chrome/chrome.zip
-            dist/firefox/firefox.zip
-            dist/safari/safari.zip
-
+          path: dist/**/**/*.zip
   release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
@@ -69,5 +61,4 @@ jobs:
             dist/firefox/firefox.zip
             dist/safari/safari.zip
         env:
-          # PAT с правами repo, сохранённый в Secrets
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }} # твой Personal Access Token с правами repo
