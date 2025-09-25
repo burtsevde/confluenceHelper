@@ -8,12 +8,24 @@ document.addEventListener('DOMContentLoaded', function() {
   const expandStatus = document.getElementById('expandStatus');
 
   let currentTab = null;
+  let contentScriptReady = false;
+  let initializationInProgress = false;
+  let pendingOperations = new Map(); // Для отслеживания операций в процессе
 
   // Универсальная функция отправки сообщений
   async function sendMessageToTab(tabId, message) {
-    return new Promise((resolve, reject) => {
+    const operationKey = `${tabId}_${message.action}`;
+    
+    // Если операция уже выполняется, ждем ее завершения
+    if (pendingOperations.has(operationKey)) {
+      console.log(`Operation ${operationKey} already in progress, waiting...`);
+      return pendingOperations.get(operationKey);
+    }
+
+    const promise = new Promise((resolve, reject) => {
       if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.sendMessage) {
         chrome.tabs.sendMessage(tabId, message, (response) => {
+          pendingOperations.delete(operationKey);
           if (chrome.runtime.lastError) {
             reject(chrome.runtime.lastError);
           } else {
@@ -28,6 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.dispatchEvent(event);
       }
     });
+
+    pendingOperations.set(operationKey, promise);
+    return promise;
   }
 
   // Универсальная функция получения активной вкладки
@@ -52,8 +67,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Инициализация
+  // Инициализация с защитой от повторных вызовов
   async function init() {
+    if (initializationInProgress) {
+      console.log('Initialization already in progress, waiting...');
+      // Ждем завершения текущей инициализации
+      if (initializationInProgress) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+      return currentTab;
+    }
+
+    if (currentTab && contentScriptReady) {
+      return currentTab;
+    }
+
+    initializationInProgress = true;
+    console.log('Starting initialization...');
+    
     try {
       currentTab = await getActiveTab();
       if (!currentTab) {
@@ -61,30 +92,41 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       await validateContentScript();
+      contentScriptReady = true;
+      console.log('Initialization completed successfully');
       return currentTab;
     } catch (error) {
       console.error('Init error:', error);
+      contentScriptReady = false;
       showStatus('Ошибка инициализации. Обновите страницу.', false);
-      return null;
+      throw error;
+    } finally {
+      initializationInProgress = false;
     }
   }
 
   // Проверка и инъекция content script
   async function validateContentScript() {
     try {
-      await sendMessageToTab(currentTab.id, { action: 'ping' });
-      console.log('Content script is loaded');
+      // Пинг с таймаутом
+      const pingResponse = await sendMessageWithTimeout({ action: 'ping' }, 2000 );
+      console.log('Content script is loaded and responding');
       return true;
     } catch (error) {
-      console.log('Content script not responding, injecting...');
+      console.log('Content script not responding, attempting injection...');
       try {
         if (typeof chrome !== 'undefined' && chrome.scripting) {
           await chrome.scripting.executeScript({
             target: { tabId: currentTab.id },
             files: ['content.js']
           });
+          // Даем время на загрузку скрипта
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Пробуем снова после инъекции
+          await sendMessageWithTimeout({ action: 'ping' }, 2000);
         }
-        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log('Content script injected successfully');
         return true;
       } catch (injectError) {
         console.error('Failed to inject content script:', injectError);
@@ -138,21 +180,30 @@ document.addEventListener('DOMContentLoaded', function() {
     return hexRegex.test(color) || rgbRegex.test(color) || rgbaRegex.test(color);
   }
 
-  // Остальной код popup.js остается без изменений...
-  // [Здесь должен быть остальной код из вашего popup.js]
-
   // Синхронизация color picker и текстового поля
   colorPicker.addEventListener('input', (e) => {
     colorInput.value = e.target.value;
-    updateColorPreview(e.target.value);
   });
 
   colorInput.addEventListener('input', (e) => {
     if (e.target.value.match(/^#[0-9A-F]{6}$/i)) {
       colorPicker.value = e.target.value;
-      updateColorPreview(e.target.value);
     }
   });
+
+  // Функция отправки сообщения с таймаутом
+  async function sendMessageWithTimeout(message, timeoutMs = 10000) {
+    if (!currentTab) {
+      throw new Error('Tab not initialized');
+    }
+
+    return Promise.race([
+        sendMessageToTab(currentTab.id, message),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
+        )
+      ]);
+  }
 
   // Кнопка поиска текста по цвету
   findButton.addEventListener('click', async () => {
@@ -163,16 +214,14 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    findButton.disabled = true;
     try {
-      if (!currentTab) currentTab = await init();
-      if (!currentTab) return;
-      
-      // await validateContentScript();
+      await init();
       
       const response = await sendMessageWithTimeout({
         action: 'findTextByColor',
         color: color
-      }, 3000);
+      }, 15000);
 
       if (response && response.results) {
         displayResults(response.results);
@@ -183,20 +232,25 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     } catch (error) {
       console.error('Search error:', error);
-      showStatus('Ошибка поиска. Обновите страницу.', false);
+      if (error.message.includes('Timeout')) {
+        showStatus('Таймаут. Попробуйте обновить страницу.', false);
+      } else {
+        showStatus('Ошибка поиска. Обновите страницу.', false);
+      }
+    } finally {
+      findButton.disabled = false;
     }
   });
 
+  // Функция получения цвета
   async function getColor() {
+    getColorButton.disabled = true;
     try {
-      if (!currentTab) currentTab = await init();
-      if (!currentTab) return;
-      
-      // await validateContentScript();
+      await init();
       
       const response = await sendMessageWithTimeout({
         action: 'getSelectedColor'
-      }, 3000);
+      }, 1000);
 
       if (response && response.success) {
         if (response.color) {
@@ -220,29 +274,27 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
       console.error('Get color error:', error);
       if (error.message.includes('Timeout')) {
-        showStatus('Таймаут. Попробуйте обновить страницу.', false);
+        showStatus('Таймаут. Попробуйте выделить текст и повторить.', false);
       } else {
         showStatus('Ошибка получения цвета', false);
       }
+    } finally {
+      getColorButton.disabled = false;
     }
   }
 
   // Кнопка получения цвета выделенного текста
-  getColorButton.addEventListener('click', async () => {
-    getColor();
-  });
+  getColorButton.addEventListener('click', getColor);
 
   // Кнопка клика на раскрывашки
   expandButton.addEventListener('click', async () => {
+    expandButton.disabled = true;
     try {
-      if (!currentTab) currentTab = await init();
-      if (!currentTab) return;
-      
-      // await validateContentScript();
+      await init();
       
       const response = await sendMessageWithTimeout({
         action: 'clickExpandButtons'
-      }, 2000);
+      }, 10000);
 
       if (response && response.success) {
         if (response.clickedCount > 0) {
@@ -256,18 +308,10 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
       console.error('Expand error:', error);
       showStatus('Ошибка: обновите страницу', false);
+    } finally {
+      expandButton.disabled = false;
     }
   });
-
-  // Функция отправки сообщения с таймаутом
-  async function sendMessageWithTimeout(message, timeoutMs = 3000) {
-    return Promise.race([
-      sendMessageToTab(currentTab.id, message),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
-      )
-    ]);
-  }
 
   // Отображение результатов
   function displayResults(results) {
@@ -307,5 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
       updateColorPreview(colorInput.value);
       getColor();
     }
+  }).catch(error => {
+    console.error('Initialization failed:', error);
   });
 });
