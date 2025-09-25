@@ -46,3 +46,28 @@ describe('Color utilities', () => {
         expect(isValidColor('not-a-color')).toBe(false);
     });
 });
+
+describe('utils - extra cases', () => {
+
+    test('normalizeColor returns null for invalid color', () => {
+        expect(normalizeColor('invalid-color')).toBe(null);
+    });
+
+    test('rgbToHex handles invalid input gracefully', () => {
+        expect(rgbToHex('not-a-color')).toBe('not-a-color');
+    });
+
+    test('isValidColor detects rgb with spaces', () => {
+        expect(isValidColor('rgb( 255 , 0 , 0 )')).toBe(true);
+    });
+
+    test('isValidColor rejects empty string', () => {
+        expect(isValidColor('')).toBe(false);
+    });
+
+    test('isValidColor rejects null and undefined', () => {
+        expect(isValidColor(null)).toBe(false);
+        expect(isValidColor(undefined)).toBe(false);
+    });
+
+});
