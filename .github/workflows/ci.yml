@@ -54,3 +54,5 @@ jobs:
             dist/chrome/chrome.zip
             dist/firefox/firefox.zip
             dist/safari/safari.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
