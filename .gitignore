@@ -1,0 +1,39 @@
+.idea/
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Build outputs
+dist/
+*.zip
+*.xpi
+
+# Jest cache
+coverage/
+.jest/
+
+# Logs
+logs
+*.log
+*.out
+*.err
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDEs/editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Safari Xcode project
+safari/build/
+safari/DerivedData/
+
+# Docker
+*.tar
