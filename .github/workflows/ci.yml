@@ -32,25 +32,21 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run build
-      - name: Zip each browser build
-        run: |
-          for dir in dist/*; do
-            if [ -d "$dir" ]; then
-              zip -r "dist/$(basename $dir).zip" "$dir"
-            fi
-          done
-      - uses: actions/upload-artifact@v4
+      - name: Upload Chrome build
+        uses: actions/upload-artifact@v4
         with:
-          name: chrome-zip
-          path: dist/chrome.zip
-      - uses: actions/upload-artifact@v4
+          name: chrome
+          path: dist/chrome/*
+      - name: Upload Firefox build
+        uses: actions/upload-artifact@v4
         with:
-          name: firefox-zip
-          path: dist/firefox.zip
-      - uses: actions/upload-artifact@v4
+          name: firefox
+          path: dist/firefox/*
+      - name: Upload Safari build
+        uses: actions/upload-artifact@v4
         with:
-          name: safari-zip
-          path: dist/safari.zip
+          name: safari
+          path: dist/safari/*
 
   release:
     needs: build
@@ -58,28 +54,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      # Скачиваем каждый zip отдельно в свои папки
       - uses: actions/download-artifact@v4
         with:
-          name: chrome-zip
+          name: chrome
           path: dist/chrome
       - uses: actions/download-artifact@v4
         with:
-          name: firefox-zip
+          name: firefox
           path: dist/firefox
       - uses: actions/download-artifact@v4
         with:
-          name: safari-zip
+          name: safari
           path: dist/safari
-
-      # Передаём в GitHub release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/chrome/chrome.zip
-            dist/firefox/firefox.zip
-            dist/safari/safari.zip
+            dist/chrome/*
+            dist/firefox/*
+            dist/safari/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }} # Personal Access Token с правами repo
