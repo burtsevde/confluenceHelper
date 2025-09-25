@@ -3,12 +3,9 @@
   "version": "1.0.0",
   "description": "Cross-browser extension for text color finding and manipulation",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
-    "build:content": "esbuild src/content.js --bundle --outfile=src/content-bundle.js --minify",
-    "build:chrome": "npm run build:content && npm run clean && mkdir -p dist/chrome && cp manifest.json dist/chrome/ && cp -r src/*.js dist/chrome/ && cp -r icons dist/chrome/ && cp popup.html dist/chrome/ && cp privacy.html dist/chrome/ && (cd dist/chrome && zip -r chrome.zip *) && cd ../..",
-    "build:firefox": "npm run build:content && npm run clean && mkdir -p dist/firefox && cp manifest.json dist/firefox/ && cp -r src/*.js dist/firefox/ && cp -r icons dist/firefox/ && cp popup.html dist/firefox/ && cp privacy.html dist/firefox/ && (cd dist/firefox && zip -r firefox.zip *) && cd ../..",
-    "pack": "npm run build:chrome",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "build": "node esbuild.config.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
   },
   "keywords": [
     "chrome-extension",

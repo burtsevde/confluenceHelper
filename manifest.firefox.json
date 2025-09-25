@@ -1,0 +1,35 @@
+{
+  "manifest_version": 2,
+  "name": "Confluence Helper",
+  "version": "1.0.0",
+  "description": "Находит текст на странице по указанному цвету",
+
+  "permissions": ["activeTab", "tabs"],
+
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "Confluence Helper",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+
+  "icons": {
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}
