@@ -9,8 +9,6 @@ async function bundle(target) {
     await fs.mkdir(outdir, { recursive: true });
 
     const entries = {
-        background: "src/background.js",
-        content: "src/content.js",
         popup: "src/popup.js"
     };
 
