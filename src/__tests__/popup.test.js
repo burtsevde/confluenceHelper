@@ -7,7 +7,7 @@ import path from "path";
 // замокаем chrome API
 import "../__mocks__/chrome";
 
-const html = fs.readFileSync(path.resolve(__dirname, "../popup.html"), "utf8");
+const html = fs.readFileSync(path.resolve(__dirname, "../../popup.html"), "utf8");
 
 describe("popup.js", () => {
     let colorInput, colorPicker, findButton, getColorButton, expandButton, resultsList;
