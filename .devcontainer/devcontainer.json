@@ -1,0 +1,36 @@
+{
+  "name": "Browser Extension Dev",
+  "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:20",
+
+  // устанавливаем зависимости для тестов
+  "postCreateCommand": "npm install",
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "ms-vscode.js-debug",
+        "ms-playwright.playwright",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+
+  "remoteUser": "node",
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind"
+  ],
+
+  "workspaceFolder": "/workspace"
+}

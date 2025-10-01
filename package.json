@@ -2,10 +2,11 @@
   "name": "confluence-helper",
   "version": "1.0.0",
   "description": "Cross-browser extension for text color finding and manipulation",
+  "type": "module",
   "scripts": {
     "clean": "rm -rf dist",
     "build": "node esbuild.config.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
   "keywords": [
     "chrome-extension",
@@ -22,5 +23,8 @@
     "jsdom": "^22.0.0",
     "web-ext": "^8.10.0"
   },
-  "type": "module"
+  "jest": {
+    "testEnvironment": "jsdom",
+    "transform": {}
+  }
 }
