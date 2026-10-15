@@ -1,6 +1,6 @@
 import { build } from "esbuild";
 import { promises as fs } from "fs";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 
 const targets = ["chrome", "firefox", "safari"];
 
@@ -9,7 +9,9 @@ async function bundle(target) {
     await fs.mkdir(outdir, { recursive: true });
 
     const entries = {
-        popup: "src/popup.js"
+        "page-actions": "src/page-actions.js",
+        popup: "src/popup.js",
+        launcher: "src/launcher.js"
     };
 
     for (const [name, entry] of Object.entries(entries)) {
@@ -25,13 +27,24 @@ async function bundle(target) {
     // копируем статику
     await fs.copyFile(`manifest.${target}.json`, `${outdir}/manifest.json`);
     await fs.copyFile("popup.html", `${outdir}/popup.html`);
+    await fs.copyFile("launcher.html", `${outdir}/launcher.html`);
     await fs.copyFile("privacy.html", `${outdir}/privacy.html`);
+    if (target === "chrome") {
+        await fs.copyFile("README.md", `${outdir}/README.md`);
+    }
 
     // иконки
-    execSync(`cp -r icons ${outdir}/`);
+    await fs.cp("icons", `${outdir}/icons`, { recursive: true });
 
     // zip
-    execSync(`cd ${outdir} && zip -r ${target}.zip .`);
+    if (process.platform === "win32") {
+        execFileSync("powershell.exe", [
+            "-NoProfile", "-NonInteractive", "-Command",
+            `Compress-Archive -Path '${outdir}/*' -DestinationPath 'dist/${target}.zip' -Force`
+        ]);
+    } else {
+        execFileSync("zip", ["-r", `../${target}.zip`, "."], { cwd: outdir });
+    }
     console.log(`✅ ${target} build done`);
 }
 

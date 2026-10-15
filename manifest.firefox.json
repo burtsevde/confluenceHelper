@@ -7,7 +7,7 @@
   "permissions": ["activeTab", "tabs"],
 
   "browser_action": {
-    "default_popup": "popup.html",
+    "default_popup": "launcher.html",
     "default_title": "Confluence Helper",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -18,18 +18,5 @@
   "icons": {
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  },
-
-  "background": {
-    "scripts": ["background.js"]
-  },
-
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_idle",
-      "all_frames": true
-    }
-  ]
+  }
 }

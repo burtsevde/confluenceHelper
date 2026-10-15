@@ -2,31 +2,45 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <title>Confluence Helper</title>
   <style>
+    html {
+      height: 100%;
+    }
     body {
-      width: 350px;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      margin: 0;
       padding: 15px;
       font-family: Arial, sans-serif;
+      overflow: hidden;
     }
     .container {
       display: flex;
       flex-direction: column;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
       gap: 12px;
     }
     .color-input {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 10px;
     }
     input[type="color"] {
       width: 40px;
       height: 40px;
+      flex: 0 0 40px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
     input[type="text"] {
       flex: 1;
+      min-width: 100px;
       padding: 8px;
       border: 1px solid #ddd;
       border-radius: 4px;
@@ -34,6 +48,7 @@
     }
     button {
       padding: 10px;
+      overflow-wrap: anywhere;
       color: white;
       border: none;
       border-radius: 4px;
@@ -43,6 +58,10 @@
     }
     button:hover {
       opacity: 0.9;
+    }
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
     }
     #findButton {
       background: #007bff;
@@ -58,24 +77,44 @@
     }
     #getColorButton {
       background: #6f42c1;
+      white-space: nowrap;
     }
     #getColorButton:hover {
       background: #5a359c;
     }
     .buttons-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
+      flex-shrink: 0;
     }
     .buttons-grid button {
       width: 100%;
     }
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .action-buttons button {
+      width: 100%;
+    }
     .results {
-      margin-top: 15px;
       border-top: 1px solid #eee;
       padding-top: 10px;
-      max-height: 200px;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+    #resultsList {
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
     }
     .result-item {
       padding: 8px;
@@ -86,17 +125,44 @@
       border-left: 4px solid #007bff;
       font-size: 13px;
       line-height: 1.4;
+      overflow-wrap: anywhere;
     }
     .result-item:hover {
       background: #e9ecef;
+    }
+    .empty-state {
+      padding: 12px;
+      color: #555;
+      background: #f8f9fa;
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .result-item.selected {
+      background: #dceaff;
+      border-left-color: #0056b3;
+      outline: 2px solid #0056b3;
+    }
+    .navigation-buttons button {
+      background: #007bff;
+    }
+    .navigation-buttons button:disabled {
+      background: #adb5bd;
+      cursor: default;
     }
     .status-message {
       padding: 8px;
       margin: 5px 0;
       border-radius: 4px;
       font-size: 12px;
-      text-align: center;
+      text-align: left;
+      overflow-wrap: anywhere;
       display: none;
+    }
+    #errorStatus {
+      flex: 0 1 auto;
+      min-height: 0;
+      overflow-y: auto;
     }
     .status-success {
       background: #d4edda;
@@ -129,30 +195,55 @@
       color: #333;
       font-size: 14px;
     }
+    #sourceTabLabel {
+      color: #555;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+    #resultsSummary {
+      color: #555;
+      font-size: 12px;
+      margin-bottom: 5px;
+      flex: 0 0 auto;
+    }
+    .navigation-buttons {
+      margin-top: auto;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <div id="sourceTabLabel">Текущая вкладка</div>
     <div class="section-title">Цвет для поиска:</div>
     <div class="color-input">
       <input type="color" id="colorPicker" value="#ff0000">
       <input type="text" id="colorInput" placeholder="#ff0000 или rgb(255,0,0)" value="#ff0000">
+      <button id="getColorButton">Получить цвет</button>
     </div>
 
-    <div class="buttons-grid">
+    <div class="action-buttons">
       <button id="findButton">Найти текст</button>
-      <button id="getColorButton">Получить цвет</button>
       <button id="expandButton">Кликнуть раскрывашки</button>
     </div>
 
     <div id="expandStatus" class="status-message"></div>
+    <div id="errorStatus" class="status-message status-error" role="alert"></div>
 
     <div class="results">
       <div class="section-title">Найденные элементы:</div>
-      <div id="resultsList"></div>
+      <div id="resultsSummary" aria-live="polite">Найдено: 0</div>
+      <div id="resultsList" role="listbox" aria-label="Найденные элементы"></div>
+    </div>
+    <div class="buttons-grid navigation-buttons">
+      <button id="upButton" title="Shift+D" aria-keyshortcuts="Shift+D" disabled>Вверх</button>
+      <button id="downButton" title="Shift+G" aria-keyshortcuts="Shift+G" disabled>Вниз</button>
     </div>
   </div>
 
+  <script src="page-actions.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
