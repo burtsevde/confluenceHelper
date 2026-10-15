@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build": "node esbuild.config.js",
+    "test:browser": "node scripts/test-browser.mjs",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
   "keywords": [

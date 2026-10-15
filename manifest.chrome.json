@@ -11,7 +11,7 @@
   ],
 
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "launcher.html",
     "default_title": "Confluence Helper",
     "default_icon": {
       "16": "icons/icon16.png",
