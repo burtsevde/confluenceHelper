@@ -16,7 +16,7 @@
 2. Выбираем "Получить цвет"
 3. В поле кода цвета указывается код выделенного цвета
 
-![Screenshot_1](https://github.com/burtsevde/confluenceHelper/blob/main/screenshots/Screenshot_1.png)
+![Окно после получения цвета](https://github.com/burtsevde/confluenceHelper/blob/main/screenshots/Screenshot_1.png)
 
 Сценарий 2:
 1. Можно выбрать "Кликнуть раскрывашки". Тогда раскроются все блоки "Extend".
@@ -27,5 +27,5 @@
 Когда окно Confluence Helper активно, `Shift+G` выполняет «Вниз», а `Shift+D` — «Вверх». При вводе цвета в поле эти сочетания не срабатывают.
 Когда фокус находится на результате, клавиши `↑` и `↓` переходят между совпадениями, а `Enter` выбирает текущую строку.
 
-![Screenshot_2](https://github.com/burtsevde/confluenceHelper/blob/main/screenshots/Screenshot_2.png)
+![Результаты поиска и выбранное совпадение](https://github.com/burtsevde/confluenceHelper/blob/main/screenshots/Screenshot_2.png)
 
